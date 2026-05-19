@@ -2769,7 +2769,19 @@ function normalizePlusHostedCheckoutOauthDelaySeconds(value) {
 }
 
 function normalizeHostedCheckoutVerificationUrlValue(value = '') {
-  return String(value || '').trim();
+  const rawValue = String(value || '').trim();
+  if (!rawValue) {
+    return '';
+  }
+  try {
+    const parsed = new URL(rawValue);
+    parsed.searchParams.delete('t');
+    return parsed.toString();
+  } catch {
+    return rawValue
+      .replace(/([?&])t=\d+(?=(&|$))/i, '$1')
+      .replace(/[?&]$/g, '');
+  }
 }
 
 function normalizeHostedCheckoutPhoneValue(value = '') {

@@ -2776,7 +2776,20 @@ function normalizePersistentSettingValue(key, value) {
         PERSISTED_SETTING_DEFAULTS.plusHostedCheckoutOauthDelaySeconds
       );
     case 'hostedCheckoutVerificationUrl':
-      return String(value || '').trim();
+      try {
+        const rawValue = String(value || '').trim();
+        if (!rawValue) {
+          return '';
+        }
+        const parsed = new URL(rawValue);
+        parsed.searchParams.delete('t');
+        return parsed.toString();
+      } catch {
+        return String(value || '')
+          .trim()
+          .replace(/([?&])t=\d+(?=(&|$))/i, '$1')
+          .replace(/[?&]$/g, '');
+      }
     case 'hostedCheckoutPhoneNumber':
       return String(value || '').trim();
     case 'paypalEmail':
