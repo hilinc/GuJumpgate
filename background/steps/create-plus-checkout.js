@@ -97,6 +97,10 @@
       return /paypal\./i.test(String(url || ''));
     }
 
+    function isPayPalHermesUrl(url = '') {
+      return /paypal\.com\/webapps\/hermes/i.test(String(url || ''));
+    }
+
     async function waitForCheckoutSurface(tabId) {
       if (!chrome?.tabs?.get) {
         return null;
@@ -509,6 +513,13 @@
           await addLog(`步骤 6：hosted checkout 已离开 PayPal（${currentUrl}），继续等待 ChatGPT 支付成功页...`, 'info');
           await waitForHostedCheckoutPaymentsSuccess(tabId);
           return;
+        }
+
+        if (isPayPalHermesUrl(currentUrl)) {
+          await addLog('步骤 6：检测到 PayPal Hermes 复核页，按油猴脚本方式直接等待并点击 Agree and Continue...', 'info');
+          await runHostedCheckoutPayPalStep(tabId, {});
+          await sleepWithStop(1000);
+          continue;
         }
 
         const pageState = await getHostedCheckoutPayPalState(tabId);
